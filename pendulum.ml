@@ -120,6 +120,16 @@ let u_func b r h x k_t =
     (t, u')
 ;;
 
+let h_diff a b k q r f x z h = 
+    let b' = transpose b in
+    let h_diff_0 = (1. /. r) &*. ((b @*. b') @*. k) in
+    let h_diff_part_0 = a @-. h_diff_0 in 
+    let h_diff_part_0' = transpose h_diff_part_0
+    and h_diff_part_1 = q @*. z
+    and h_diff_part_2 = k @*. (f x) in
+    h_diff_part_2 @-. h_diff_part_0' @-. h_diff_part_1
+;;
+
 let z t = Array2.of_array float64 c_layout [|
     [| atan ((t *. 10. -. 5.) +. 3.) |];
     [| 0. |];
@@ -141,8 +151,8 @@ let _ =
     let f_x' = x_magnit_diff a_r b_r f_r 0. in
     let k_r = mx_rk4_down (k_magnit_diff a_r b_r q_r r_r) k_0 1. 0.001 0. in
     let h_0 = q_r @*. z(1.) in
-    let result = List.map (u_func b_r r_r h_0 x_0) k_r in
-    List.map (print_result) result
+    let u_0 = List.map (u_func b_r r_r h_0 x_0) k_r in
+    List.map (print_result) u_0
     (*
     let result = mx_rk4_up f_x' x_0 0. 0.001 30. in
     List.map (print_result) result

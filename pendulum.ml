@@ -64,7 +64,7 @@ let x_magnit_diff a b f u t x =
 ;;
 
 let x_0 = Array2.of_array float64 c_layout [|
-    [| 1. |];
+    [| atan (-2.) |];
     [| 1. |];
     [| 1. |]|]
 ;;
@@ -113,6 +113,19 @@ let print_result b =
         print_newline ();
 ;;
 
+let u_func b r h x k_t = 
+    let (t, k) = k_t
+    and b' = transpose b in
+    let u' = (1./.r) &*. (b' @*. (h @-. (k @*. x))) in
+    (t, u')
+;;
+
+let z t = Array2.of_array float64 c_layout [|
+    [| atan ((t *. 10. -. 5.) +. 3.) |];
+    [| 0. |];
+    [| 0. |] |]
+;;
+
 
 let _ =
     let a = 7.
@@ -126,7 +139,9 @@ let _ =
     and b_r = b_magnit
     and f_r = f_magnit b sigma delta in
     let f_x' = x_magnit_diff a_r b_r f_r 0. in
-    let result = mx_rk4_down (k_magnit_diff a_r b_r q_r r_r) k_0 1. 0.001 0. in
+    let k_r = mx_rk4_down (k_magnit_diff a_r b_r q_r r_r) k_0 1. 0.001 0. in
+    let h_0 = q_r @*. z(1.) in
+    let result = List.map (u_func b_r r_r h_0 x_0) k_r in
     List.map (print_result) result
     (*
     let result = mx_rk4_up f_x' x_0 0. 0.001 30. in

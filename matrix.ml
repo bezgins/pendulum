@@ -157,9 +157,9 @@ let mx_rk4_down f y0 t0 h t_end =
         let y_new = mx_rk4_step f y t (-.h) in
         let t_new = t -. h in
         match t_new < t_end with
-          true  -> result
+          true  -> (t_new, y_new) :: result
         | false -> rk4_rec ((t_new, y_new)::result) f y_new t_new h t_end
     in
-    rk4_rec [] f y0 t0 h t_end
+    rk4_rec ((t0, y0)::[]) f y0 t0 h t_end
 ;;
 

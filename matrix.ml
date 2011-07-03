@@ -163,3 +163,19 @@ let mx_rk4_down f y0 t0 h t_end =
     rk4_rec ((t0, y0)::[]) f y0 t0 h t_end
 ;;
 
+let mx_dot_product null plus mul a b = 
+    let result = ref null
+    and dim1 = Array2.dim1 a
+    and dim2 = Array2.dim2 a in
+    for i = 0 to pred dim1 do
+        for j = 0 to pred dim2 do
+            result := (plus (!result) (mul a.{i,j} b.{i,j}))
+        done;
+    done;
+    !result 
+;;
+
+let ( ><. ) a b = 
+    mx_dot_product 0. (+.) ( *. ) a b
+;;
+

@@ -74,3 +74,12 @@ val mx_rk4_down :(float -> (float, 'a, 'b) Batteries.Bigarray.Array2.t -> (float
     (float, 'a, 'b) Batteries.Bigarray.Array2.t ->
     float -> float -> float -> (float * (float, 'a, 'b) Batteries.Bigarray.Array2.t) list
 
+val mx_dot_product : 'a -> ('a -> 'b -> 'a) -> ('c -> 'd -> 'b) -> 
+    ('c, 'e, 'f) Batteries.Bigarray.Array2.t -> 
+    ('d, 'g, 'h) Batteries.Bigarray.Array2.t -> 
+    'a
+
+val ( ><. ) : (float, 'a, 'b) Batteries.Bigarray.Array2.t ->
+    (float, 'c, 'd) Batteries.Bigarray.Array2.t ->
+    float
+

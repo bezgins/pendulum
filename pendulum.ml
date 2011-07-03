@@ -30,8 +30,6 @@ open Print;;
 open Bigarray;;
 open Matrix;;
 
-let calc_step = 0.001;;
-
 let k_magnit_diff a b q r t k_now = 
     let a' = transpose a
     and b' = transpose b in
@@ -203,7 +201,7 @@ let z t = Array2.of_array float64 c_layout [|
     [| 0. |] |]
 ;;
 
-let x_next h_diff_f h_new_f u_next_f 
+let x_next calc_step h_diff_f h_new_f u_next_f 
     x_next_f x_diff_f z_f q b r
     krev k k0 k1 x0 x_prev = 
     (* h_new = h_n(0)..h_n(1) *)
@@ -220,7 +218,7 @@ let x_next h_diff_f h_new_f u_next_f
                 h_new k in
     x_n
 ;;
-
+(* TODO: change 2 rev_map2's and fold_left to fold_left2 *)
 let metric_func a b = 
     let diff x y = 
         let (_,_,x') = x
@@ -232,11 +230,11 @@ let metric_func a b =
     List.fold_left (+.) 0. dots
 ;;
 
-let fx step metric_f x_func x_0 = 
+let fx eps calc_step metric_f x_func x_0 = 
     let rec fx' i metric_prev x_p =
         let _::x = x_func x_p in
         let metric  = (metric_f x_p x) in
-        match (metric_prev -. metric) < step with
+        match (metric_prev -. metric) < eps with
           true  -> Printf.printf "%d\n" i; x
         | false -> fx' (i+1) metric x
     in
@@ -246,13 +244,18 @@ let fx step metric_f x_func x_0 =
 ;;
 
 let _ =
-    let a = 7.
-    and b = 0.4
-    and d = 1.17 
-    and r_r = 0.004
-    and k_1 = p_r
-    and sigma = 0.284
-    and delta = 0.681 in
+    let in_file = Pervasives.open_in "in.txt" in
+    let step = Scanf.fscanf in_file "%f " (fun x -> x) 
+    and eps  = Scanf.fscanf in_file "%f " (fun x -> x) 
+    and a = Scanf.fscanf in_file "%f " (fun x -> x) 
+    and b = Scanf.fscanf in_file "%f " (fun x -> x)
+    and d = Scanf.fscanf in_file "%f " (fun x -> x) 
+    and r_r = Scanf.fscanf in_file "%f " (fun x -> x)
+    and sigma = Scanf.fscanf in_file "%f " (fun x -> x)
+    and delta = Scanf.fscanf in_file "%f " (fun x -> x) 
+    and _ = q_r.{0,0} <- Scanf.fscanf in_file "%f " (fun x -> x)
+    and _ = p_r.{0,0} <- Scanf.fscanf in_file "%f " (fun x -> x) in
+    let k_1 = p_r in
     let a_r = a_magnit a d
     and b_r = b_magnit
     and f_r = f_magnit b sigma delta in
@@ -260,7 +263,7 @@ let _ =
     and f_x'= x_magnit_diff a_r b_r f_r 0.
     and h_magnit_d = h_diff a_r b_r q_r r_r f_r z in
     (* k_r = k(0) :: ... :: k(1)  *)
-    let k_r = mx_rk4_down (k_magnit_diff a_r b_r q_r r_r) k_1 1. calc_step 0. in
+    let k_r = mx_rk4_down (k_magnit_diff a_r b_r q_r r_r) k_1 1. step 0. in
     (* k_rev = k(1) :: .. :: k(0) *)
     let _::k_rev = List.rev k_r in
     let (_,k_0)::_ = k_r in
@@ -268,10 +271,10 @@ let _ =
     (* u_0 = u_0(0)...u_0(1) *)
     let u_0 = List.rev_map (u_func b_r r_r h_0 x_0) k_rev in
     let (_, u0)::_ = u_0 in
-    let x_0'= List.fold_left (x_new calc_step x_magnit_d) ((0. , u0, x_0)::[]) u_0 in
+    let x_0'= List.fold_left (x_new step x_magnit_d) ((0. , u0, x_0)::[]) u_0 in
 
-    let x_21' = fx 0.0001 metric_func 
-                (x_next h_magnit_d h_new u_func_n 
+    let x_21' = fx eps step metric_func 
+                (x_next step h_magnit_d h_new u_func_n 
                 x_new_n x_magnit_d z q_r b_r r_r 
                 k_rev k_r k_0 k_1 x_0) x_0' 
     in

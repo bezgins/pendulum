@@ -100,8 +100,18 @@ let p_r = Array2.of_array float64 c_layout [|
 ;;
 
 (* Целевая функция *)
-let z t = Array2.of_array float64 c_layout [|
-    [| 3. +. (atan (t *. 10. -. 5.)) |];
+let z t = 
+    let p = 
+        if ((t > 0.199) && (t < 0.201)) || ((t > 0.399) && (t < 0.401)) then
+            2.
+        else
+            if ((t > 0.599) && (t < 0.601)) || ((t > 0.799) && (t < 0.801)) then
+                -2.
+            else
+                0.
+    in
+    Array2.of_array float64 c_layout [|
+    [| 3. +. (atan (t *. 10. -. 5.)) +. p |];
     [| 0. |];
     [| 0. |] |]
 ;;

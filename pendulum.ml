@@ -72,8 +72,24 @@ let f_magnit b sigma delta x =
 let x_magnit_diff a b f u t x = 
     let linear = a @*. x
     and non_linear = f x
-    and control = u &*.b in
-    (linear @+. non_linear) @+. control
+    and control = u &*.b 
+    and p = 
+        if  ((t > 0.199) && (t < 0.201)) ||
+            ((t > 0.399) && (t < 0.401)) ||
+            ((t > 0.601) && (t < 0.603)) ||
+            ((t > 0.801) && (t < 0.803))
+        then
+            200.
+        else
+            if  ((t > 0.201) && (t < 0.203)) || 
+                ((t > 0.401) && (t < 0.403)) ||
+                ((t > 0.599) && (t < 0.601)) || 
+                ((t > 0.799) && (t < 0.801)) then
+                -200.
+            else
+                0.
+    in
+    ((linear @+. non_linear) @+. control ) @+. (p &*. b)
 ;;
 
 (* Начальное состояние модели 
@@ -101,17 +117,8 @@ let p_r = Array2.of_array float64 c_layout [|
 
 (* Целевая функция *)
 let z t = 
-    let p = 
-        if ((t > 0.199) && (t < 0.201)) || ((t > 0.399) && (t < 0.401)) then
-            2.
-        else
-            if ((t > 0.599) && (t < 0.601)) || ((t > 0.799) && (t < 0.801)) then
-                -2.
-            else
-                0.
-    in
     Array2.of_array float64 c_layout [|
-    [| 3. +. (atan (t *. 10. -. 5.)) +. p |];
+    [| 3. +. (atan (t *. 10. -. 5.)) |];
     [| 0. |];
     [| 0. |] |]
 ;;
